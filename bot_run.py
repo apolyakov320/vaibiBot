@@ -3,10 +3,10 @@ import asyncpg
 from bot_base import bot, dp
 from decouple import config
 from db_handler.database import Database
-from middlewares.subscription import SubscriptionMiddleware
 from handlers.start_menu import start_router
 from handlers.profile_menu import profile_router
 from handlers.subscription import subscription_router
+from handlers.ai_chat import ai_router
 
 
 async def main():
@@ -22,13 +22,11 @@ async def main():
     # Сохраняем db в диспетчер для dependency injection
     dp["db"] = db
 
-    # Добавляем middleware
-    dp.message.middleware(SubscriptionMiddleware())
-    
     # роутеры
     dp.include_router(start_router) 
     dp.include_router(profile_router)
     dp.include_router(subscription_router)
+    dp.include_router(ai_router)
   
     
     try:

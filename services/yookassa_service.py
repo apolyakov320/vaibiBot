@@ -12,7 +12,7 @@ async def create_yookassa_payment(amount, description):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://t.me/your_bot"
+            "return_url": "https://t.me/vaibiBot"
         },
         "capture": True,
         "description": description

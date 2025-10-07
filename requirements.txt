@@ -2,3 +2,4 @@ asyncpg
 aiogram
 python-decouple
 yookassa
+aiohttp

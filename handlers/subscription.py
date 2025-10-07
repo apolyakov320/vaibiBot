@@ -8,6 +8,14 @@ from decouple import config
 
 subscription_router = Router()
 
+# Красивые названия подписок
+SUBSCRIPTION_NAMES = {
+    "premium_1m": "💎 1 месяц",
+    "premium_3m": "💎 3 месяца", 
+    "premium_12m": "💎 12 месяцев",
+    "free": "🆓 Бесплатная"
+}
+
 # Цены в копейках
 SUBSCRIPTION_PRICES = {
     1: 29900,  # 299 руб
@@ -24,11 +32,14 @@ async def cmd_subscribe(message: Message, db: Database):
 
     if has_active_sub:
         sub_info = await db.get_subscription_info(user_id)
-        end_date = sub_info['1subscription_end_date'].strftime('%d.%m.%Y')
+        end_date = sub_info['subscription_end_date'].strftime('%d.%m.%Y')
+        tariff_type = sub_info.get('tariff_type', 'free')
+        pretty_name = SUBSCRIPTION_NAMES.get(tariff_type, tariff_type)
+        
         await message.answer(
             f"🌟 У вас уже есть активная подписка!\n"
             f"Действует до: {end_date}\n"
-            f"Тип: {sub_info['tariff_type']}\n\n"
+            f"Тариф: {pretty_name}\n\n"
             f"Чтобы продлить - выберите вариант ниже:",
             reply_markup=subscription_kb()
         )
@@ -140,17 +151,36 @@ async def process_successful_payment(message: Message, db: Database):
         months = int(parts[1])
         days = months * 30
         
-        # Активируем подписку
+        # Получаем информацию о текущей подписке
+        sub_info = await db.get_subscription_info(user_id)
+        has_active_sub = sub_info and sub_info['is_subscription_active'] and sub_info['subscription_end_date'] > datetime.now()
+        
+        # Активируем подписку (автоматически продлевает если уже есть)
         success = await db.activate_subscription(user_id, days, f"premium_{months}m")
         
         if success:
-            await message.answer(
-                f"🎉 <b>Оплата прошла успешно!</b>\n\n"
-                f"<b>Подписка активирована на {months} месяцев</b>\n"
-                f"Сумма: <b>{payment.total_amount / 100} ₽</b>\n\n"
-                f"<i>Теперь вам доступны все премиум-функции!</i>",
-                parse_mode='HTML'
-            )
+            # Получаем обновленную информацию
+            new_sub_info = await db.get_subscription_info(user_id)
+            end_date = new_sub_info['subscription_end_date'].strftime('%d.%m.%Y')
+            
+            if has_active_sub:
+                message_text = (
+                    f"🎉 <b>Оплата прошла успешно!</b>\n\n"
+                    f"<b>Подписка продлена на {months} месяцев</b>\n"
+                    f"Новая дата окончания: <b>{end_date}</b>\n"
+                    f"Сумма: <b>{payment.total_amount / 100} ₽</b>\n\n"
+                    f"<i>Подписка автоматически продлена!</i>"
+                )
+            else:
+                message_text = (
+                    f"🎉 <b>Оплата прошла успешно!</b>\n\n"
+                    f"<b>Подписка активирована на {months} месяцев</b>\n"
+                    f"Действует до: <b>{end_date}</b>\n"
+                    f"Сумма: <b>{payment.total_amount / 100} ₽</b>\n\n"
+                    f"<i>Теперь вам доступны все премиум-функции!</i>"
+                )
+            
+            await message.answer(message_text, parse_mode='HTML')
         else:
             await message.answer(
                 "✅ <b>Оплата прошла успешно, но возникла ошибка активации</b>\n\n"
@@ -174,11 +204,13 @@ async def handle_my_subscription(callback: CallbackQuery, db: Database):
     if sub_info and sub_info['is_subscription_active']:
         end_date = sub_info['subscription_end_date'].strftime("%d.%m.%Y %H:%M")
         status = "✅ Активна" if sub_info['subscription_end_date'] > datetime.now() else "❌ Истекла"
+        tariff_type = sub_info.get('tariff_type', 'free')
+        pretty_name = SUBSCRIPTION_NAMES.get(tariff_type, tariff_type)
         
         await callback.message.edit_text(
             f"📊 Ваша подписка:\n\n"
             f"Статус: {status}\n"
-            f"Тип: {sub_info['tariff_type']}\n"
+            f"Тариф: {pretty_name}\n"
             f"Действует до: {end_date}\n\n"
             f"Чтобы продлить - /subscribe"
         )
