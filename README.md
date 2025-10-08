@@ -111,7 +111,7 @@ vaibi-bot/
 
 👥 Контакты
 
-  Разработчик: @deathiscure
+  Разработчик: a.polyakov320@gmail.com
 
 
 
