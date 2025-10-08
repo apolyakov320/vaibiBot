@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.filters import Command
 from aiogram.types import Message, ContentType
 from db_handler.database import Database
 from services.hf_service import HuggingFaceService  # импорт класса
@@ -8,6 +9,21 @@ from decouple import config
 hf_service = HuggingFaceService(api_token=config("HF_API_TOKEN"))
 
 ai_router = Router()
+
+@ai_router.message(Command("clear"))
+async def clear_history(message: Message, db: Database):
+    user_id = message.from_user.id
+    
+    # Очищаем историю в БД
+    success = await db.clear_conversation_history(user_id)
+    
+    if success:
+        await message.answer(
+            "💫 История диалога очищена!\n\n"
+            "Теперь я буду ждать твоих новых сообщений, чтобы начать свежую беседу 🌸"
+        )
+    else:
+        await message.answer("❌ Не удалось очистить историю")
 
 @ai_router.message(F.content_type !=ContentType.TEXT)
 async def handle_non_text(message: Message):

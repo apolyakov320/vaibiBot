@@ -111,7 +111,8 @@ async def cmd_privacy(message: Message):
 @start_router.message(Command('help'))
 async def cmd_help(message: Message):
     await message.answer('<blockquote>👤/profile - Мой профиль\n'
-                         '💎/subscribe - Приобрести подписку</blockquote>\n'
+                         '💎/subscribe - Приобрести подписку\n'
+                         '🔄/clear - Очистить историю диалога\n</blockquote>'
                          )
     
 # связаться с разработчиком

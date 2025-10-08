@@ -68,19 +68,20 @@ class HuggingFaceService:
                     if response.status == 200:
                         result = await response.json()
                         return result["choices"][0]["message"]["content"]
+                    
+                    elif response.status == 402:
+                        return (
+                            "🌸 Кажется, у меня перерыв...\n\n"
+                            "Я ненадолго отошла, но скоро вернусь и с радостью продолжу наш разговор!\n\n"
+                            "Попробуй написать через пару минут 💫"
+                        )
+                    
+                    elif response.status in [429, 503]:
+                        return "🔄 Слишком много желающих пообщаться! Давай подождем минутку и попробуем снова? 😊"
+                    
                     else:
-                        return f"Ошибка API: {response.status}"
-                        
+                        return "💫 Что-то я сегодня рассеянная... Давай попробуем еще раз?"
+                            
         except Exception as e:
-            return f"Ошибка: {e}"
-
-# Тест
-if __name__ == "__main__":
-    import asyncio
-    
-    async def test():
-        service = HuggingFaceService(api_token=config("HF_API_TOKEN"))
-        response = await service.get_response("Привет")
-        print(f"Ответ: {response}")
-    
-    asyncio.run(test())
+            # Логируем ошибку, но пользователю показываем дружелюбный ответ
+            print(f"API Error: {e}")

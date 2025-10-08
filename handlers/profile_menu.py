@@ -68,7 +68,6 @@ async def refresh_profile(callback, db: Database):
     await callback.message.edit_text(profile_text, reply_markup=profile_kb())
     await callback.answer("✅ Профиль обновлен")
 
-
 # удалить профиль     
 @profile_router.callback_query(lambda c: c.data == "delete_profile")
 async def delete_profile(callback, db: Database):

@@ -164,7 +164,8 @@ class Database:
     async def clear_conversation_history(self, user_id: int) -> bool:
         """Очистить историю диалога пользователя"""
         async with self.pool.acquire() as conn:
-            await conn.execute('''
+            result = await conn.execute('''
                 DELETE FROM messages WHERE user_id = $1
             ''', user_id)
+            print(f"🗑️ Удалено сообщений для user_id {user_id}: {result}")
         return True
