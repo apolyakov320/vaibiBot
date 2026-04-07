@@ -30,7 +30,7 @@
 
 1. Клонирование репозитория
    
-- `git clone https://github.com/your-username/vaibi-bot.git`
+- `git clone https://github.com/apolyakov320/vaibi-bot.git`
 - `cd vaibi-bot`
 
 2. Установка зависимостей
